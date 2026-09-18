@@ -2,50 +2,117 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Klondike Solitaire</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=3" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>" />
+  <style>
+    /* Critical CSS – always applied even if external stylesheet fails */
+    .hidden { display: none !important; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #0d7a4f;
+      color: #fff;
+      min-height: 100vh;
+    }
+    .overlay-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5000;
+      backdrop-filter: blur(4px);
+    }
+    .overlay-screen.hidden { display: none !important; }
+    .panel {
+      background: #fff;
+      color: #1a1a1a;
+      border-radius: 16px;
+      padding: 28px 32px;
+      width: min(400px, 92vw);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+    .panel h1 { color: #0d7a4f; margin: 0 0 4px; font-size: 1.8rem; }
+    .panel h2 { color: #0d7a4f; margin: 0 0 12px; }
+    .panel .sub { color: #666; margin: 0 0 20px; }
+    .diff-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .diff-list button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .diff-list button:hover { border-color: #0d7a4f; background: #f0faf5; }
+    .diff-list button strong { display: block; color: #0d7a4f; font-size: 1.1rem; }
+    .diff-list button span { color: #666; font-size: 0.85rem; }
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+      margin: 4px;
+      font-family: inherit;
+    }
+    .btn-primary { background: #0d7a4f; color: #fff; }
+    .btn-primary:hover { background: #0a5c3c; }
+    .btn-secondary { background: #eee; color: #333; }
+    .btn-link { background: none; border: none; color: #0d7a4f; text-decoration: underline; cursor: pointer; padding: 8px; font-family: inherit; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  </style>
 </head>
 <body>
-  <!-- Start / Difficulty screen -->
+
+  <!-- START SCREEN -->
   <div id="start-screen" class="overlay-screen">
-    <div class="start-card">
+    <div class="panel">
       <h1>♠ Solitaire ♥</h1>
-      <p class="subtitle">Klondike</p>
-      <div class="difficulty-options">
-        <button class="diff-btn" data-diff="easy">
-          <span class="diff-name">Easy</span>
-          <span class="diff-desc">Draw 1 · Unlimited passes</span>
+      <p class="sub">Klondike</p>
+      <div class="diff-list">
+        <button type="button" data-diff="easy">
+          <strong>Easy</strong>
+          <span>Draw 1 · Unlimited passes</span>
         </button>
-        <button class="diff-btn" data-diff="medium">
-          <span class="diff-name">Medium</span>
-          <span class="diff-desc">Draw 3 · Unlimited passes</span>
+        <button type="button" data-diff="medium">
+          <strong>Medium</strong>
+          <span>Draw 3 · Unlimited passes</span>
         </button>
-        <button class="diff-btn" data-diff="hard">
-          <span class="diff-name">Hard</span>
-          <span class="diff-desc">Draw 3 · 3 passes only</span>
+        <button type="button" data-diff="hard">
+          <strong>Hard</strong>
+          <span>Draw 3 · 3 passes only</span>
         </button>
       </div>
-      <button id="open-tutorial-start" class="link-btn">How to play</button>
+      <button type="button" id="open-tutorial-start" class="btn-link">How to play</button>
     </div>
   </div>
 
-  <div class="app hidden" id="game-app">
-    <header>
-      <div class="header-left">
-        <button id="menu-btn" class="icon-btn" title="Menu">☰</button>
-        <h1>Solitaire</h1>
+  <!-- GAME -->
+  <div id="game-app" class="hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button type="button" id="menu-btn" class="icon-btn" title="Menu">☰</button>
+        <span class="title">Solitaire</span>
       </div>
-      <div class="controls">
-        <button id="pause-btn" class="icon-btn" title="Pause">⏸</button>
-        <button id="undo" title="Undo" disabled>Undo</button>
-        <button id="hint-btn" title="Hint">Hint</button>
-        <button id="auto-btn" class="hidden" title="Finish the game">Finish</button>
+      <div class="topbar-right">
+        <button type="button" id="pause-btn" class="icon-btn" title="Pause">⏸</button>
+        <button type="button" id="undo" class="btn btn-secondary" disabled>Undo</button>
+        <button type="button" id="hint-btn" class="btn btn-secondary">Hint</button>
+        <button type="button" id="auto-btn" class="btn btn-finish hidden">Finish</button>
         <div class="stats">
           <span id="timer">00:00</span>
-          <span id="moves">0</span>
-          <span id="score">0</span>
+          <span>Moves <b id="moves">0</b></span>
+          <span>Score <b id="score">0</b></span>
         </div>
       </div>
     </header>
@@ -73,54 +140,53 @@
         <div id="tableau-6" class="pile tableau-col"></div>
       </div>
     </main>
-
     <div id="pass-info" class="pass-info hidden"></div>
   </div>
 
-  <!-- Pause overlay -->
+  <!-- PAUSE -->
   <div id="pause-screen" class="overlay-screen hidden">
-    <div class="pause-card">
+    <div class="panel">
       <h2>Paused</h2>
-      <button id="resume-btn" class="primary-btn">Resume</button>
-      <button id="new-from-pause" class="secondary-btn">New Game</button>
-      <button id="tutorial-from-pause" class="link-btn">Tutorial</button>
+      <button type="button" id="resume-btn" class="btn btn-primary">Resume</button>
+      <button type="button" id="new-from-pause" class="btn btn-secondary">New Game</button>
+      <button type="button" id="tutorial-from-pause" class="btn-link">Tutorial</button>
     </div>
   </div>
 
-  <!-- Win modal -->
+  <!-- WIN -->
   <div id="win-modal" class="overlay-screen hidden">
-    <div class="modal-card win-card">
+    <div class="panel">
       <h2>You Win! 🎉</h2>
-      <div id="win-stats" class="win-stats"></div>
-      <button id="play-again" class="primary-btn">Play Again</button>
-      <button id="change-diff" class="secondary-btn">Change Difficulty</button>
+      <div id="win-stats" style="margin-bottom:16px;line-height:1.6;color:#444"></div>
+      <button type="button" id="play-again" class="btn btn-primary">Play Again</button>
+      <button type="button" id="change-diff" class="btn btn-secondary">Change Difficulty</button>
     </div>
   </div>
 
-  <!-- Tutorial -->
+  <!-- TUTORIAL -->
   <div id="tutorial-modal" class="overlay-screen hidden">
-    <div class="modal-card tutorial-card">
-      <button id="close-tutorial" class="close-x">×</button>
+    <div class="panel" style="text-align:left;position:relative">
+      <button type="button" id="close-tutorial" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888">×</button>
       <div id="tutorial-content"></div>
-      <div class="tutorial-nav">
-        <button id="tut-prev" class="secondary-btn">Back</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+        <button type="button" id="tut-prev" class="btn btn-secondary">Back</button>
         <span id="tut-dots"></span>
-        <button id="tut-next" class="primary-btn">Next</button>
+        <button type="button" id="tut-next" class="btn btn-primary">Next</button>
       </div>
     </div>
   </div>
 
-  <!-- In-game menu -->
+  <!-- MENU -->
   <div id="menu-modal" class="overlay-screen hidden">
-    <div class="modal-card menu-card">
+    <div class="panel">
       <h2>Menu</h2>
-      <button id="menu-new" class="menu-item">New Game</button>
-      <button id="menu-diff" class="menu-item">Change Difficulty</button>
-      <button id="menu-tutorial" class="menu-item">Tutorial</button>
-      <button id="menu-close" class="secondary-btn">Close</button>
+      <button type="button" id="menu-new" class="btn btn-secondary" style="display:block;width:100%;margin:6px 0">New Game</button>
+      <button type="button" id="menu-diff" class="btn btn-secondary" style="display:block;width:100%;margin:6px 0">Change Difficulty</button>
+      <button type="button" id="menu-tutorial" class="btn btn-secondary" style="display:block;width:100%;margin:6px 0">Tutorial</button>
+      <button type="button" id="menu-close" class="btn btn-primary" style="margin-top:10px">Close</button>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>
