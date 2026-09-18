@@ -1,6 +1,6 @@
-/* v10 extras: high scores + force fresh load */
+/* v12: high scores + win streaks + version reload */
 (function () {
-  var VER = "10";
+  var VER = "12";
   try {
     var old = localStorage.getItem("solitaire_ver");
     if (old && old !== VER) {
@@ -23,6 +23,8 @@
     if (!el) return;
     var hs = loadHS();
     var parts = [];
+    if (hs.streak > 0) parts.push("🔥 Streak: <b>" + hs.streak + "</b>");
+    if (hs.bestStreak > 0) parts.push("Best streak: <b>" + hs.bestStreak + "</b>");
     if (hs.bestTime != null) {
       var m = Math.floor(hs.bestTime / 60), s = hs.bestTime % 60;
       parts.push("Best time: <b>" + m + ":" + String(s).padStart(2, "0") + "</b>");
@@ -32,7 +34,6 @@
     el.innerHTML = parts.length ? parts.join(" · ") : "No wins yet — beat the game!";
   }
 
-  // Watch win modal and record high scores from the stats text
   function watchWin() {
     var modal = document.getElementById("win-modal");
     if (!modal) return;
@@ -50,6 +51,11 @@
       var score = scoreM ? parseInt(scoreM[1], 10) : null;
       var hs = loadHS();
       var improved = [];
+      hs.streak = (hs.streak || 0) + 1;
+      if (!hs.bestStreak || hs.streak > hs.bestStreak) {
+        hs.bestStreak = hs.streak;
+        improved.push("streak");
+      }
       if (elapsed != null && (hs.bestTime == null || elapsed < hs.bestTime)) {
         hs.bestTime = elapsed; improved.push("time");
       }
@@ -60,6 +66,9 @@
         hs.bestScore = score; improved.push("score");
       }
       saveHS(hs);
+      var streakLine = document.createElement("div");
+      streakLine.innerHTML = "Win streak: <strong>" + hs.streak + "</strong> 🔥";
+      stats.appendChild(streakLine);
       if (improved.length) {
         var badge = document.createElement("div");
         badge.style.cssText = "color:#0d7a4f;font-weight:700;margin-top:8px";
@@ -71,10 +80,31 @@
     obs.observe(modal, { attributes: true, attributeFilter: ["class"] });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () { showHS(); watchWin(); });
-  } else {
+  // Reset streak when starting a new game after a loss isn't easy to detect;
+  // reset streak if user opens start screen without winning (menu new game)
+  function hookNewGame() {
+    document.querySelectorAll("[data-diff], #menu-new, #play-again, #new-from-pause").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        // play-again continues streak; only reset on explicit abandon via change difficulty
+      });
+    });
+    var changeDiff = document.getElementById("change-diff");
+    var menuDiff = document.getElementById("menu-diff");
+    function resetStreak() {
+      var hs = loadHS();
+      hs.streak = 0;
+      saveHS(hs);
+      showHS();
+    }
+    if (changeDiff) changeDiff.addEventListener("click", resetStreak);
+    if (menuDiff) menuDiff.addEventListener("click", resetStreak);
+  }
+
+  function boot() {
     showHS();
     watchWin();
+    hookNewGame();
   }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })();
