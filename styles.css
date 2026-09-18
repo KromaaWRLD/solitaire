@@ -184,11 +184,15 @@ body {
 .card .corner {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   z-index: 1;
   pointer-events: none;
   font-family: "Georgia", "Times New Roman", serif;
+  position: absolute;
+  top: 5px;
+  left: 7px;
 }
+.card .corner.top { position: absolute; top: 5px; left: 7px; }
 .card .corner span:first-child {
   font-size: 1.2rem;
   font-weight: 800;
@@ -200,10 +204,7 @@ body {
   line-height: 1.1;
   margin-top: 1px;
 }
-.card .corner.bottom {
-  transform: rotate(180deg);
-  align-self: flex-end;
-}
+.card .corner.bottom { display: none !important; }
 .card .suit-center {
   position: absolute;
   top: 50%;
@@ -276,6 +277,14 @@ body {
 @keyframes dealIn {
   from { transform: translateY(-40px) scale(0.85); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+
+.drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.95;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.45));
 }
 
 .pile.valid-drop {
