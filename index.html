@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Klondike Solitaire</title>
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="styles.css?v=10" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>" />
   <style>
     .hidden { display: none !important; }
@@ -26,6 +26,7 @@
     .btn-secondary { background: #eee; color: #333; }
     .btn-link { background: none; border: none; color: #0d7a4f; text-decoration: underline; cursor: pointer; padding: 8px; font-family: inherit; }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .drag-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: 0.95; filter: drop-shadow(0 12px 20px rgba(0,0,0,0.45)); }
   </style>
 </head>
 <body>
@@ -38,6 +39,7 @@
         <button type="button" data-diff="medium"><strong>Medium</strong><span>Draw 3 · Unlimited passes</span></button>
         <button type="button" data-diff="hard"><strong>Hard</strong><span>Draw 3 · 3 passes only</span></button>
       </div>
+      <p id="highscores" style="font-size:0.85rem;color:#666;margin:12px 0 8px;line-height:1.5"></p>
       <button type="button" id="open-tutorial-start" class="btn-link">How to play</button>
     </div>
   </div>
@@ -120,6 +122,10 @@
       <button type="button" id="menu-close" class="btn btn-primary" style="margin-top:10px">Close</button>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/gh/KromaaWRLD/solitaire@b8f61cd2b274b7b3986c5dd72c758b44f499396a/game.js"></script>
+  <script src="g0.js?v=10"></script>
+  <script src="g1.js?v=10"></script>
+  <script src="g2.js?v=10"></script>
+  <script src="g3.js?v=10"></script>
+  <script src="g4.js?v=10"></script>
 </body>
 </html>
