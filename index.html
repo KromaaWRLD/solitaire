@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Klondike Solitaire</title>
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>" />
   <style>
     .hidden { display: none !important; }
     body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #0d7a4f; color: #fff; min-height: 100vh; }
     .overlay-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(4px); }
     .overlay-screen.hidden { display: none !important; }
-    .panel { background: #fff; color: #1a1a1a; border-radius: 16px; padding: 28px 32px; width: min(400px, 92vw); box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; }
+    .panel { background: #fff; color: #1a1a1a; border-radius: 16px; padding: 28px 32px; width: min(420px, 92vw); box-shadow: 0 20px 50px rgba(0,0,0,0.4); text-align: center; }
     .panel h1 { color: #0d7a4f; margin: 0 0 4px; font-size: 1.8rem; }
     .panel h2 { color: #0d7a4f; margin: 0 0 12px; }
-    .panel .sub { color: #666; margin: 0 0 20px; }
-    .diff-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .panel .sub { color: #666; margin: 0 0 16px; }
+    .diff-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
     .diff-list button { display: block; width: 100%; text-align: left; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa; cursor: pointer; font-size: 1rem; font-family: inherit; }
     .diff-list button:hover { border-color: #0d7a4f; background: #f0faf5; }
     .diff-list button strong { display: block; color: #0d7a4f; font-size: 1.1rem; pointer-events: none; }
-    .diff-list button span { color: #666; font-size: 0.85rem; pointer-events: none; }
+    .diff-list button span { color: #555; font-size: 0.82rem; pointer-events: none; line-height: 1.35; }
     .btn { border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; font-size: 0.95rem; margin: 4px; font-family: inherit; }
     .btn-primary { background: #0d7a4f; color: #fff; }
     .btn-primary:hover { background: #0a5c3c; }
@@ -28,18 +28,27 @@
     .btn-link { background: none; border: none; color: #0d7a4f; text-decoration: underline; cursor: pointer; padding: 8px; font-family: inherit; }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .card .corner.bottom { display: none !important; }
-    .card .corner, .card .corner.top { position: absolute; top: 5px; left: 7px; align-items: flex-start; }
+    .card .corner, .card .corner.top { position: absolute !important; top: 5px !important; left: 7px !important; align-items: flex-start !important; }
   </style>
 </head>
 <body>
   <div id="start-screen" class="overlay-screen">
     <div class="panel">
       <h1>♠ Solitaire ♥</h1>
-      <p class="sub">Klondike · v12</p>
+      <p class="sub">Klondike · v13</p>
       <div class="diff-list">
-        <button type="button" data-diff="easy"><strong>Easy</strong><span>Draw 1 · Unlimited undos</span></button>
-        <button type="button" data-diff="medium"><strong>Medium</strong><span>Draw 3 · Top card only</span></button>
-        <button type="button" data-diff="hard"><strong>Hard</strong><span>Draw 3 · 3 passes · 3 undos</span></button>
+        <button type="button" data-diff="easy">
+          <strong>Easy</strong>
+          <span>Draw 1 card · Unlimited stock passes · Unlimited undos · Best for learning</span>
+        </button>
+        <button type="button" data-diff="medium">
+          <strong>Medium</strong>
+          <span>Draw 3 cards (only the top waste card is playable) · Unlimited passes &amp; undos</span>
+        </button>
+        <button type="button" data-diff="hard">
+          <strong>Hard</strong>
+          <span>Draw 3 · Only top waste card · Max 3 stock passes · Only 3 undos</span>
+        </button>
       </div>
       <p id="highscores" style="font-size:0.85rem;color:#666;margin:12px 0 8px;line-height:1.5"></p>
       <button type="button" id="open-tutorial-start" class="btn-link">How to play</button>
@@ -125,6 +134,6 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/gh/KromaaWRLD/solitaire@b8f61cd2b274b7b3986c5dd72c758b44f499396a/game.js"></script>
-  <script src="extras.js?v=12"></script>
+  <script src="extras.js?v=13"></script>
 </body>
 </html>

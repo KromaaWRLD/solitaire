@@ -1,6 +1,6 @@
-/* v12: high scores + win streaks + version reload */
+/* v13 extras */
 (function () {
-  var VER = "12";
+  var VER = "13";
   try {
     var old = localStorage.getItem("solitaire_ver");
     if (old && old !== VER) {
@@ -10,6 +10,22 @@
     }
     localStorage.setItem("solitaire_ver", VER);
   } catch (e) {}
+
+  function showToast(msg, ms) {
+    ms = ms || 2400;
+    var el = document.getElementById("toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "toast";
+      el.style.cssText = "position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.92);color:#fff;padding:12px 20px;border-radius:10px;font-size:0.95rem;z-index:99999;max-width:92vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);pointer-events:none;opacity:0;transition:opacity 0.2s;line-height:1.4";
+      document.body.appendChild(el);
+    }
+    el.innerHTML = msg;
+    el.style.opacity = "1";
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.style.opacity = "0"; }, ms);
+  }
+  window.showToast = showToast;
 
   function loadHS() {
     try { return JSON.parse(localStorage.getItem("solitaire_hs") || "{}"); }
@@ -52,19 +68,10 @@
       var hs = loadHS();
       var improved = [];
       hs.streak = (hs.streak || 0) + 1;
-      if (!hs.bestStreak || hs.streak > hs.bestStreak) {
-        hs.bestStreak = hs.streak;
-        improved.push("streak");
-      }
-      if (elapsed != null && (hs.bestTime == null || elapsed < hs.bestTime)) {
-        hs.bestTime = elapsed; improved.push("time");
-      }
-      if (moves != null && (hs.bestMoves == null || moves < hs.bestMoves)) {
-        hs.bestMoves = moves; improved.push("moves");
-      }
-      if (score != null && (hs.bestScore == null || score > hs.bestScore)) {
-        hs.bestScore = score; improved.push("score");
-      }
+      if (!hs.bestStreak || hs.streak > hs.bestStreak) { hs.bestStreak = hs.streak; improved.push("streak"); }
+      if (elapsed != null && (hs.bestTime == null || elapsed < hs.bestTime)) { hs.bestTime = elapsed; improved.push("time"); }
+      if (moves != null && (hs.bestMoves == null || moves < hs.bestMoves)) { hs.bestMoves = moves; improved.push("moves"); }
+      if (score != null && (hs.bestScore == null || score > hs.bestScore)) { hs.bestScore = score; improved.push("score"); }
       saveHS(hs);
       var streakLine = document.createElement("div");
       streakLine.innerHTML = "Win streak: <strong>" + hs.streak + "</strong> 🔥";
@@ -80,31 +87,17 @@
     obs.observe(modal, { attributes: true, attributeFilter: ["class"] });
   }
 
-  // Reset streak when starting a new game after a loss isn't easy to detect;
-  // reset streak if user opens start screen without winning (menu new game)
-  function hookNewGame() {
-    document.querySelectorAll("[data-diff], #menu-new, #play-again, #new-from-pause").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        // play-again continues streak; only reset on explicit abandon via change difficulty
-      });
-    });
-    var changeDiff = document.getElementById("change-diff");
-    var menuDiff = document.getElementById("menu-diff");
+  function hookDiff() {
     function resetStreak() {
-      var hs = loadHS();
-      hs.streak = 0;
-      saveHS(hs);
-      showHS();
+      var hs = loadHS(); hs.streak = 0; saveHS(hs); showHS();
     }
-    if (changeDiff) changeDiff.addEventListener("click", resetStreak);
-    if (menuDiff) menuDiff.addEventListener("click", resetStreak);
+    var a = document.getElementById("change-diff");
+    var b = document.getElementById("menu-diff");
+    if (a) a.addEventListener("click", resetStreak);
+    if (b) b.addEventListener("click", resetStreak);
   }
 
-  function boot() {
-    showHS();
-    watchWin();
-    hookNewGame();
-  }
+  function boot() { showHS(); watchWin(); hookDiff(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })();
