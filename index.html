@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klondike Solitaire</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>♠ Klondike Solitaire ♥</h1>
+      <div class="controls">
+        <button id="new-game" title="Start a new game">New Game</button>
+        <button id="undo" title="Undo last move" disabled>Undo</button>
+        <label class="draw-mode">
+          <input type="radio" name="draw" value="1" checked /> Draw 1
+        </label>
+        <label class="draw-mode">
+          <input type="radio" name="draw" value="3" /> Draw 3
+        </label>
+        <div class="stats">
+          <span id="timer">00:00</span>
+          <span id="moves">Moves: 0</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="board">
+      <!-- Top row: Stock, Waste, Foundations -->
+      <div class="top-row">
+        <div class="stock-waste">
+          <div id="stock" class="pile stock" title="Click to draw"></div>
+          <div id="waste" class="pile waste"></div>
+        </div>
+        <div class="foundations">
+          <div id="foundation-0" class="pile foundation" data-suit="♠"></div>
+          <div id="foundation-1" class="pile foundation" data-suit="♥"></div>
+          <div id="foundation-2" class="pile foundation" data-suit="♦"></div>
+          <div id="foundation-3" class="pile foundation" data-suit="♣"></div>
+        </div>
+      </div>
+
+      <!-- Tableau -->
+      <div class="tableau">
+        <div id="tableau-0" class="pile tableau-col"></div>
+        <div id="tableau-1" class="pile tableau-col"></div>
+        <div id="tableau-2" class="pile tableau-col"></div>
+        <div id="tableau-3" class="pile tableau-col"></div>
+        <div id="tableau-4" class="pile tableau-col"></div>
+        <div id="tableau-5" class="pile tableau-col"></div>
+        <div id="tableau-6" class="pile tableau-col"></div>
+      </div>
+    </main>
+
+    <div id="win-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>You Win! 🎉</h2>
+        <p id="win-stats"></p>
+        <button id="play-again">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
