@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Klondike Solitaire</title>
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>" />
   <style>
-    /* Critical CSS – always applied even if external stylesheet fails */
     .hidden { display: none !important; }
     body {
       margin: 0;
@@ -74,7 +73,6 @@
 </head>
 <body>
 
-  <!-- START SCREEN -->
   <div id="start-screen" class="overlay-screen">
     <div class="panel">
       <h1>♠ Solitaire ♥</h1>
@@ -97,7 +95,6 @@
     </div>
   </div>
 
-  <!-- GAME -->
   <div id="game-app" class="hidden">
     <header class="topbar">
       <div class="topbar-left">
@@ -143,7 +140,6 @@
     <div id="pass-info" class="pass-info hidden"></div>
   </div>
 
-  <!-- PAUSE -->
   <div id="pause-screen" class="overlay-screen hidden">
     <div class="panel">
       <h2>Paused</h2>
@@ -153,7 +149,6 @@
     </div>
   </div>
 
-  <!-- WIN -->
   <div id="win-modal" class="overlay-screen hidden">
     <div class="panel">
       <h2>You Win! 🎉</h2>
@@ -163,7 +158,6 @@
     </div>
   </div>
 
-  <!-- TUTORIAL -->
   <div id="tutorial-modal" class="overlay-screen hidden">
     <div class="panel" style="text-align:left;position:relative">
       <button type="button" id="close-tutorial" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888">×</button>
@@ -176,7 +170,6 @@
     </div>
   </div>
 
-  <!-- MENU -->
   <div id="menu-modal" class="overlay-screen hidden">
     <div class="panel">
       <h2>Menu</h2>
@@ -187,6 +180,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=3"></script>
+  <script src="game.js?v=4"></script>
 </body>
 </html>
