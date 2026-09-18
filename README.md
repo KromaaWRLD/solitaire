@@ -1,55 +1,54 @@
 # ♠ Klondike Solitaire ♥
 
-A clean, fully playable **Klondike Solitaire** game that runs entirely in your browser. No build step, no dependencies.
+A polished, Google-style **Klondike Solitaire** that runs entirely in the browser. No build step, no dependencies.
 
 **[Play it live →](https://kromaawrld.github.io/solitaire/)**
 
 ## Features
 
-- Classic Klondike rules
-- **Draw 1** or **Draw 3** modes
-- Drag-and-drop **or** click-to-move
-- Double-click a card to send it to the foundation
-- Undo
-- Move counter & timer
-- Responsive design (works on phone & desktop)
-- Win detection with celebration modal
-
-## How to Play
-
-1. Build the four foundation piles (A → K, same suit).
-2. Tableau: build down in alternating colors.
-3. Only Kings can be placed in empty tableau columns.
-4. Click the stock to draw cards.
-5. When the stock is empty, click it again to recycle the waste pile.
+- **Three difficulties**
+  - **Easy** – Draw 1, unlimited passes
+  - **Medium** – Draw 3, unlimited passes
+  - **Hard** – Draw 3, only 3 passes through the stock
+- **Auto-complete (Finish)** – When every card is face-up, tap **Finish** to automatically move remaining cards to the foundations (moves are counted)
+- **Pause** – Freeze the timer anytime
+- **Tutorial** – Built-in step-by-step guide
+- **Hint** – Highlights a useful move
+- **Undo** – With full history
+- Card flip & deal animations
+- High-contrast, easy-to-read cards
+- Score + timer + move counter
+- Drag-and-drop or click-to-move
+- Double-click to send a card to the foundation
+- Fully responsive (phone & desktop)
 
 ## Controls
 
-| Action              | How                          |
-|---------------------|------------------------------|
-| Draw cards          | Click the stock pile         |
-| Move cards          | Drag or click source → target|
-| Auto to foundation  | Double-click a card          |
-| Undo                | Click **Undo** button        |
-| New game            | Click **New Game**           |
+| Action | How |
+|--------|-----|
+| Draw | Click the stock |
+| Move | Drag, or click source then destination |
+| Auto to foundation | Double-click a card |
+| Finish game | **Finish** button (appears when all cards are face-up) |
+| Hint | **Hint** button or press `H` |
+| Undo | **Undo** or `Ctrl/Cmd + Z` |
+| Pause | ⏸ button or `Esc` |
+| Tutorial | Menu → Tutorial |
 
-## Run Locally
+## Run locally
 
-Just open `index.html` in any modern browser, or serve the folder:
+Open `index.html` in any modern browser, or:
 
 ```bash
 npx serve .
-# or
-python -m http.server
 ```
 
-## Deploy on GitHub Pages
+## GitHub Pages
 
-1. Go to the repository **Settings → Pages**
-2. Source: **Deploy from a branch**
-3. Branch: `main` / root
-4. Save — your game will be live at `https://<username>.github.io/solitaire/`
+1. Repo **Settings → Pages**
+2. Source: **Deploy from a branch** → `main` / root
+3. Live at `https://<username>.github.io/solitaire/`
 
 ## License
 
-MIT — do whatever you want with it.
+MIT
