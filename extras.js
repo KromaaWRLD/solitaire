@@ -1,6 +1,6 @@
-/* v15: fixed pointer-drag + accurate illegal toasts */
+/* v16: fixed pointer-drag — legal black-on-red works */
 (function () {
-  var VER = "15";
+  var VER = "16";
   try {
     var old = localStorage.getItem("solitaire_ver");
     if (old && old !== VER) {
@@ -147,16 +147,10 @@
     var tops = targetPile.querySelectorAll(".card.face-up");
     var movingRank = rankOf(movingEl);
     var movingColor = colorOf(movingEl);
-    if (!tops.length) {
-      return movingRank === 13;
-    }
+    if (!tops.length) return movingRank === 13;
     var top = tops[tops.length - 1];
-    if (top === movingEl || targetPile.contains(movingEl)) {
-      return false;
-    }
-    var topRank = rankOf(top);
-    var topColor = colorOf(top);
-    return movingColor !== topColor && movingRank === topRank - 1;
+    if (top === movingEl || targetPile.contains(movingEl)) return false;
+    return movingColor !== colorOf(top) && movingRank === rankOf(top) - 1;
   }
 
   function isLegalFoundationMove(movingEl, targetPile) {
@@ -166,10 +160,9 @@
     var movingSuit = suitEl ? suitEl.textContent.trim() : "";
     if (!cards.length) return movingRank === 1;
     var top = cards[cards.length - 1];
-    var topRank = rankOf(top);
     var topSuitEl = top.querySelector(".corner span:last-child");
     var topSuit = topSuitEl ? topSuitEl.textContent.trim() : "";
-    return movingSuit === topSuit && movingRank === topRank + 1;
+    return movingSuit === topSuit && movingRank === rankOf(top) + 1;
   }
 
   function explainIllegal(movingEl, targetPile) {
@@ -182,37 +175,17 @@
     if (targetPile.classList.contains("foundation")) {
       var fcards = targetPile.querySelectorAll(".card.face-up");
       if (!fcards.length) return "<b>" + label + "</b> — foundations must start with an <b>Ace</b>.";
-      return (
-        "Can't place <b>" +
-        label +
-        "</b>. Build <b>up by suit</b> (A→K), one rank at a time."
-      );
+      return "Can't place <b>" + label + "</b>. Build <b>up by suit</b> (A→K), one rank at a time.";
     }
     if (targetPile.classList.contains("tableau-col")) {
       var tops = targetPile.querySelectorAll(".card.face-up");
       if (!tops.length) return "Empty column only accepts a <b>King</b>.";
       var top = tops[tops.length - 1];
       var topLabel = labelOf(top);
-      var mRank = rankOf(movingEl);
-      var tRank = rankOf(top);
-      var mColor = colorOf(movingEl);
-      var tColor = colorOf(top);
-      if (mColor === tColor)
-        return (
-          "<b>" +
-          label +
-          "</b> on <b>" +
-          topLabel +
-          "</b> — need <b>alternating colors</b> (red on black / black on red)."
-        );
-      if (mRank !== tRank - 1)
-        return (
-          "<b>" +
-          label +
-          "</b> on <b>" +
-          topLabel +
-          "</b> — must be <b>exactly one rank lower</b>."
-        );
+      if (colorOf(movingEl) === colorOf(top))
+        return "<b>" + label + "</b> on <b>" + topLabel + "</b> — need <b>alternating colors</b>.";
+      if (rankOf(movingEl) !== rankOf(top) - 1)
+        return "<b>" + label + "</b> on <b>" + topLabel + "</b> — must be <b>exactly one rank lower</b>.";
       return "Can't place <b>" + label + "</b> on <b>" + topLabel + "</b>.";
     }
     return "Invalid move.";
@@ -315,13 +288,16 @@
   }
 
   function doMoveViaClicks(cardEl, targetPile, done) {
-    cardEl.click();
+    suppressClick = false;
+    function fire(el) {
+      if (!el) return;
+      el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+    }
+    fire(cardEl);
     setTimeout(function () {
-      targetPile.click();
-      setTimeout(function () {
-        done();
-      }, 30);
-    }, 20);
+      fire(targetPile);
+      setTimeout(done, 50);
+    }, 40);
   }
 
   function onPointerUp(e) {
@@ -345,7 +321,6 @@
     document.querySelectorAll(".card").forEach(function (c) {
       c.style.opacity = "";
     });
-
     drag = null;
 
     if (!wasDrag) {
@@ -356,7 +331,7 @@
     suppressClick = true;
     setTimeout(function () {
       suppressClick = false;
-    }, 100);
+    }, 60);
 
     var targetPile =
       under && under.closest(".tableau-col, .foundation, .stock, .waste");
@@ -369,32 +344,31 @@
     }
 
     var legal = false;
-    if (targetPile.classList.contains("tableau-col")) {
-      legal = isLegalTableauMove(cardEl, targetPile);
-    } else if (targetPile.classList.contains("foundation")) {
-      legal = isLegalFoundationMove(cardEl, targetPile);
-    }
+    if (targetPile.classList.contains("tableau-col")) legal = isLegalTableauMove(cardEl, targetPile);
+    else if (targetPile.classList.contains("foundation")) legal = isLegalFoundationMove(cardEl, targetPile);
 
     if (!legal) {
       showToast("❌ Invalid — " + explainIllegal(cardEl, targetPile));
       return;
     }
 
-    var beforeMoves = (document.getElementById("moves") || {}).textContent;
-    doMoveViaClicks(cardEl, targetPile, function () {
-      var afterMoves = (document.getElementById("moves") || {}).textContent;
-      if (afterMoves === beforeMoves) {
-        clearSelectionDom();
-        setTimeout(function () {
-          doMoveViaClicks(cardEl, targetPile, function () {
-            var after2 = (document.getElementById("moves") || {}).textContent;
-            if (after2 === beforeMoves) {
+    // CRITICAL: turn suppress off so the game receives select + drop clicks
+    setTimeout(function () {
+      suppressClick = false;
+      var beforeMoves = (document.getElementById("moves") || {}).textContent;
+      doMoveViaClicks(cardEl, targetPile, function () {
+        var afterMoves = (document.getElementById("moves") || {}).textContent;
+        if (afterMoves === beforeMoves) {
+          clearSelectionDom();
+          setTimeout(function () {
+            suppressClick = false;
+            doMoveViaClicks(cardEl, targetPile, function () {
               clearSelectionDom();
-            }
-          });
-        }, 40);
-      }
-    });
+            });
+          }, 50);
+        }
+      });
+    }, 70);
   }
 
   function bindCard(el) {
