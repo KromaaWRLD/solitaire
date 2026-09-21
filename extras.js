@@ -1,6 +1,6 @@
-/* v14: pointer-drag overlay + invalid toasts + streaks + version */
+/* v15: fixed pointer-drag + accurate illegal toasts */
 (function () {
-  var VER = "14";
+  var VER = "15";
   try {
     var old = localStorage.getItem("solitaire_ver");
     if (old && old !== VER) {
@@ -12,7 +12,7 @@
   } catch (e) {}
 
   function showToast(msg, ms) {
-    ms = ms || 2600;
+    ms = ms || 2800;
     var el = document.getElementById("toast");
     if (!el) {
       el = document.createElement("div");
@@ -123,42 +123,103 @@
     if (b) b.addEventListener("click", resetStreak);
   }
 
-  var drag = null;
-
-  function cardLabel(el) {
+  var RANK_MAP = { A: 1, J: 11, Q: 12, K: 13 };
+  function rankOf(el) {
+    if (!el) return 0;
+    var t = el.querySelector(".corner span:first-child");
+    var r = t ? t.textContent.trim() : "";
+    if (RANK_MAP[r]) return RANK_MAP[r];
+    var n = parseInt(r, 10);
+    return isNaN(n) ? 0 : n;
+  }
+  function colorOf(el) {
+    if (!el) return "";
+    return el.classList.contains("red") ? "red" : "black";
+  }
+  function labelOf(el) {
     if (!el) return "card";
     var r = el.querySelector(".corner span:first-child");
     var s = el.querySelector(".corner span:last-child");
-    return ((r && r.textContent) || "") + ((s && s.textContent) || "") || "card";
+    return ((r && r.textContent) || "") + ((s && s.textContent) || "");
   }
 
-  function explainInvalid(cardEl, targetPile) {
-    var label = cardLabel(cardEl);
+  function isLegalTableauMove(movingEl, targetPile) {
+    var tops = targetPile.querySelectorAll(".card.face-up");
+    var movingRank = rankOf(movingEl);
+    var movingColor = colorOf(movingEl);
+    if (!tops.length) {
+      return movingRank === 13;
+    }
+    var top = tops[tops.length - 1];
+    if (top === movingEl || targetPile.contains(movingEl)) {
+      return false;
+    }
+    var topRank = rankOf(top);
+    var topColor = colorOf(top);
+    return movingColor !== topColor && movingRank === topRank - 1;
+  }
+
+  function isLegalFoundationMove(movingEl, targetPile) {
+    var cards = targetPile.querySelectorAll(".card.face-up");
+    var movingRank = rankOf(movingEl);
+    var suitEl = movingEl.querySelector(".corner span:last-child");
+    var movingSuit = suitEl ? suitEl.textContent.trim() : "";
+    if (!cards.length) return movingRank === 1;
+    var top = cards[cards.length - 1];
+    var topRank = rankOf(top);
+    var topSuitEl = top.querySelector(".corner span:last-child");
+    var topSuit = topSuitEl ? topSuitEl.textContent.trim() : "";
+    return movingSuit === topSuit && movingRank === topRank + 1;
+  }
+
+  function explainIllegal(movingEl, targetPile) {
+    var label = labelOf(movingEl);
     if (!targetPile) return "Drop on a column or foundation.";
     if (targetPile.classList.contains("stock"))
-      return "Don't drop on the stock — click it to draw.";
+      return "Click the stock to draw — don't drop cards on it.";
     if (targetPile.classList.contains("waste"))
       return "You can't put cards back on the waste.";
     if (targetPile.classList.contains("foundation")) {
+      var fcards = targetPile.querySelectorAll(".card.face-up");
+      if (!fcards.length) return "<b>" + label + "</b> — foundations must start with an <b>Ace</b>.";
       return (
         "Can't place <b>" +
         label +
-        "</b> there. Foundations build <b>Ace → King</b> in the <b>same suit</b>."
+        "</b>. Build <b>up by suit</b> (A→K), one rank at a time."
       );
     }
     if (targetPile.classList.contains("tableau-col")) {
-      var cards = targetPile.querySelectorAll(".card.face-up");
-      if (!cards.length) {
-        return "Empty column needs a <b>King</b>. (" + label + " isn't a King.)";
-      }
-      return (
-        "Can't place <b>" +
-        label +
-        "</b> there. Columns need <b>alternating colors</b> and one rank lower."
-      );
+      var tops = targetPile.querySelectorAll(".card.face-up");
+      if (!tops.length) return "Empty column only accepts a <b>King</b>.";
+      var top = tops[tops.length - 1];
+      var topLabel = labelOf(top);
+      var mRank = rankOf(movingEl);
+      var tRank = rankOf(top);
+      var mColor = colorOf(movingEl);
+      var tColor = colorOf(top);
+      if (mColor === tColor)
+        return (
+          "<b>" +
+          label +
+          "</b> on <b>" +
+          topLabel +
+          "</b> — need <b>alternating colors</b> (red on black / black on red)."
+        );
+      if (mRank !== tRank - 1)
+        return (
+          "<b>" +
+          label +
+          "</b> on <b>" +
+          topLabel +
+          "</b> — must be <b>exactly one rank lower</b>."
+        );
+      return "Can't place <b>" + label + "</b> on <b>" + topLabel + "</b>.";
     }
     return "Invalid move.";
   }
+
+  var drag = null;
+  var suppressClick = false;
 
   function makeGhost(cardEl) {
     var g = cardEl.cloneNode(true);
@@ -204,8 +265,6 @@
         return;
       }
     }
-    e.preventDefault();
-    e.stopPropagation();
     try {
       cardEl.setPointerCapture(e.pointerId);
     } catch (_) {}
@@ -229,9 +288,10 @@
     if (!drag) return;
     var dx = e.clientX - drag.startX;
     var dy = e.clientY - drag.startY;
-    if (!drag.moved && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+    if (!drag.moved && Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
     if (!drag.moved) {
       drag.moved = true;
+      suppressClick = true;
       drag.ghost = makeGhost(drag.cardEl);
       drag.cardEl.style.opacity = "0.35";
       var pile = drag.cardEl.closest(".tableau-col");
@@ -245,6 +305,23 @@
       drag.ghost.style.left = e.clientX - drag.ox + "px";
       drag.ghost.style.top = e.clientY - drag.oy + "px";
     }
+    e.preventDefault();
+  }
+
+  function clearSelectionDom() {
+    document.querySelectorAll(".card.selected").forEach(function (c) {
+      c.classList.remove("selected");
+    });
+  }
+
+  function doMoveViaClicks(cardEl, targetPile, done) {
+    cardEl.click();
+    setTimeout(function () {
+      targetPile.click();
+      setTimeout(function () {
+        done();
+      }, 30);
+    }, 20);
   }
 
   function onPointerUp(e) {
@@ -269,32 +346,55 @@
       c.style.opacity = "";
     });
 
-    if (wasDrag) {
-      var targetPile = under && under.closest(".tableau-col, .foundation, .stock, .waste");
-      var fromPile = cardEl.closest(".pile");
-      if (targetPile && targetPile !== fromPile) {
-        var beforeMoves = (document.getElementById("moves") || {}).textContent;
-        cardEl.click();
-        setTimeout(function () {
-          if (targetPile.classList.contains("tableau-col") || targetPile.classList.contains("foundation")) {
-            var topCard = null;
-            var cs = targetPile.querySelectorAll(".card");
-            if (cs.length) topCard = cs[cs.length - 1];
-            if (topCard) topCard.click();
-            else targetPile.click();
-          }
-          setTimeout(function () {
-            var afterMoves = (document.getElementById("moves") || {}).textContent;
-            var stillSelected = document.querySelector(".card.selected");
-            if (afterMoves === beforeMoves) {
-              showToast("❌ Invalid — " + explainInvalid(cardEl, targetPile));
-              if (stillSelected) stillSelected.click();
-            }
-          }, 40);
-        }, 10);
-      }
-    }
     drag = null;
+
+    if (!wasDrag) {
+      suppressClick = false;
+      return;
+    }
+
+    suppressClick = true;
+    setTimeout(function () {
+      suppressClick = false;
+    }, 100);
+
+    var targetPile =
+      under && under.closest(".tableau-col, .foundation, .stock, .waste");
+    var fromPile = cardEl.closest(".pile");
+    if (!targetPile || targetPile === fromPile) return;
+
+    if (targetPile.classList.contains("stock") || targetPile.classList.contains("waste")) {
+      showToast("❌ Invalid — " + explainIllegal(cardEl, targetPile));
+      return;
+    }
+
+    var legal = false;
+    if (targetPile.classList.contains("tableau-col")) {
+      legal = isLegalTableauMove(cardEl, targetPile);
+    } else if (targetPile.classList.contains("foundation")) {
+      legal = isLegalFoundationMove(cardEl, targetPile);
+    }
+
+    if (!legal) {
+      showToast("❌ Invalid — " + explainIllegal(cardEl, targetPile));
+      return;
+    }
+
+    var beforeMoves = (document.getElementById("moves") || {}).textContent;
+    doMoveViaClicks(cardEl, targetPile, function () {
+      var afterMoves = (document.getElementById("moves") || {}).textContent;
+      if (afterMoves === beforeMoves) {
+        clearSelectionDom();
+        setTimeout(function () {
+          doMoveViaClicks(cardEl, targetPile, function () {
+            var after2 = (document.getElementById("moves") || {}).textContent;
+            if (after2 === beforeMoves) {
+              clearSelectionDom();
+            }
+          });
+        }, 40);
+      }
+    });
   }
 
   function bindCard(el) {
@@ -307,6 +407,16 @@
       ev.preventDefault();
     });
     el.setAttribute("draggable", "false");
+    el.addEventListener(
+      "click",
+      function (ev) {
+        if (suppressClick) {
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+        }
+      },
+      true
+    );
   }
 
   function rebindAll() {
@@ -314,13 +424,16 @@
   }
 
   function watchBoard() {
-    var board = document.querySelector(".board") || document.getElementById("game-app") || document.body;
+    var board =
+      document.querySelector(".board") ||
+      document.getElementById("game-app") ||
+      document.body;
     var obs = new MutationObserver(function () {
       rebindAll();
     });
     obs.observe(board, { childList: true, subtree: true });
     rebindAll();
-    setInterval(rebindAll, 800);
+    setInterval(rebindAll, 1000);
   }
 
   function boot() {
